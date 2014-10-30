@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace JJ.SecureTokenService.Models
+namespace SecureTokenServiceClient.Models
 {
-    public class ClaimsModel
+    public class ClaimsResponseModel
     {
-        [JsonProperty(PropertyName="userName")]
+        [JsonProperty(PropertyName = "userName")]
         public string UserName
         {
             get;

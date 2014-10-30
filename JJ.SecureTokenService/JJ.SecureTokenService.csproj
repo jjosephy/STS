@@ -14,7 +14,7 @@
     <RootNamespace>JJ.SecureTokenService</RootNamespace>
     <AssemblyName>JJ.SecureTokenService</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <UseIISExpress>true</UseIISExpress>
+    <UseIISExpress>false</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
@@ -100,6 +100,7 @@
     <Compile Include="App_Start\OwinStartUp.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="AssemblyResolver\AssemblyResolver.cs" />
+    <Compile Include="Contracts\V1\TokenRequestV1.cs" />
     <Compile Include="Controllers\ClaimsController.cs" />
     <Compile Include="Controllers\TokenController.cs" />
     <Compile Include="Global.asax.cs">
@@ -136,7 +137,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>3597</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:3597/</IISUrl>
+          <IISUrl>http://localhost:8088</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
