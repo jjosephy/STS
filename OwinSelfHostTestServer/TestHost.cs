@@ -42,11 +42,11 @@ namespace OwinSelfHostTestServer
             TestAssemblyResolver.RegisterTypes(types);
         }
 
-        public async Task<HttpResponseMessage> CreateRequestAsync<T>(
+        public async Task<HttpResponseMessage> CreateRequestAsync<TBody>(
             HttpMethod method, 
             string uri,
             string authToken = "",
-            T value = default(T),
+            TBody value = default(TBody),
             uint version = 1)
         {
             client.DefaultRequestHeaders.Add(ApiVersion, version.ToString());
@@ -61,7 +61,7 @@ namespace OwinSelfHostTestServer
             }
             else if (method == HttpMethod.Post)
             {
-                return await client.PostAsJsonAsync<T>(uri, value);
+                return await client.PostAsJsonAsync<TBody>(uri, value);
             }
             else if (method == HttpMethod.Delete)
             {
