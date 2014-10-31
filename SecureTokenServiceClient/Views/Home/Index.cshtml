@@ -1,41 +1,25 @@
-﻿@{
-    Layout = null;
-}
+﻿@{Layout = "~/Views/Shared/_Layout.cshtml";}
 
-<!DOCTYPE html>
-
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Home Page</title>
-    <link href="@Url.Content("~/Content/Main.css")" rel="stylesheet" type="text/css" />
-    <script type="text/javascript" src="@Url.Content("/Script/jquery-2.1.1.min.js")"></script>
-</head>
-<body>
-    <div>
-        <div>
-            Login 
+<div>
+    <form method="post" action="/Login">
+        <div class="loginDiv">
+            <div>User Name</div>
+            <input type="text" name="username" value="nanme" />
         </div>
-        <form method="post" action="/Login">
-            <div class="loginDiv">
-                <div>User Name</div>
-                <input type="text" name="username" value="nanme"/>
-            </div>
-            <div class="loginDiv">
-                <div>Password</div>
-                <input type="password" name="password" value="password" />
-            </div>
-            <div class="loginDiv">
-                <div>Mobile Number</div>
-                <input type="text" name="mobile" value="mobile" />
-            </div>
-            <div class="loginDiv">
-                <div>Email Address</div>
-                <input type="text" name="email" value="email@email.com" />
-            </div>
-            <div id="loginButton" class="loginDiv">
-                <input type="submit" value="Login"></div>
-        </form>
-    </div>
-</body>
-</html>
+        <div class="loginDiv">
+            <div>Password</div>
+            <input type="password" name="password" value="password" />
+        </div>
+        <div class="loginDiv">
+            <div>Mobile Number</div>
+            <input type="text" name="mobile" value="mobile" />
+        </div>
+        <div class="loginDiv">
+            <div>Email Address</div>
+            <input type="text" name="email" value="email@email.com" />
+        </div>
+        <div id="loginButton" class="loginDiv">
+            <input type="submit" value="Login">
+        </div>
+    </form>
+</div>

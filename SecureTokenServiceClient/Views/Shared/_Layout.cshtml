@@ -1,0 +1,18 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    <link href="@Url.Content("~/Content/Main.css")" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="@Url.Content("/Script/jquery-2.1.1.min.js")"></script>
+</head>
+<body>
+    <div class="header">
+        Login
+    </div>
+    <div>
+        @RenderBody()
+    </div>
+</body>
+</html>

@@ -37,9 +37,14 @@ namespace SecureTokenServiceClient.Controllers
 
                 var claims = await tokenClient.GetClaimsAsync(tokenResponse.AuthToken);
 
-                return tokenResponse.StatusCode == HttpStatusCode.OK ?
-                    tokenResponse.AuthToken + "<br/>" + JsonConvert.SerializeObject(claims) : 
-                    tokenResponse.Message;
+                if (tokenResponse.StatusCode == HttpStatusCode.OK)
+                {
+                    return tokenResponse.AuthToken + "<br/>" + JsonConvert.SerializeObject(claims); 
+                }
+
+                Response.StatusCode = 401;
+                Response.Redirect("/?l=f");
+                return string.Empty;
             }
             catch(Exception ex)
             {

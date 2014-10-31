@@ -1,7 +1,16 @@
 ﻿body {
+    margin: 0px;
+    font-family: Calibri;
+    font-size: 12pt;
 }
 
 .loginDiv {
     padding: 10px;
-    
+}
+
+.header {
+    background-color: navy;
+    color: white;
+    font-size: 1.3em;
+    padding-left: 10px;
 }
