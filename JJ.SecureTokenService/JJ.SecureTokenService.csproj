@@ -106,6 +106,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Handler\CertificateHandler.cs" />
     <Compile Include="Models\ClaimsModel.cs" />
     <Compile Include="OwinStartUp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

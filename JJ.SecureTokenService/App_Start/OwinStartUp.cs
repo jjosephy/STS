@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Http;
 using System.Web.Http.Dispatcher;
 using Microsoft.Owin.Security.OAuth;
+using JJ.SecureTokenService.Handler;
 
 namespace JJ.SecureTokenService
 {
@@ -19,6 +20,8 @@ namespace JJ.SecureTokenService
         public void ConfigureAuth(IAppBuilder app)
         {
             var config = new HttpConfiguration();
+            config.MessageHandlers.Add(new CertificateHandler());
+            
             OAuthBearerOptions = new OAuthAuthorizationServerOptions();
             app.UseOAuthAuthorizationServer(OAuthBearerOptions);
 
@@ -40,7 +43,7 @@ namespace JJ.SecureTokenService
             
             config.SuppressDefaultHostAuthentication();
             config.Filters.Add(new HostAuthenticationFilter("Bearer"));
-
+            
             app.UseWebApi(config);
         }
     }
