@@ -37,11 +37,11 @@ namespace SecureTokenServiceClient.Controllers
 
                 if (tokenResponse.StatusCode == HttpStatusCode.OK)
                 {
-                      var claims = await tokenClient.GetClaimsAsync(tokenResponse.AuthToken);
+                    var claims = await tokenClient.GetClaimsAsync(tokenResponse.AuthToken);
                     return tokenResponse.AuthToken + "<br/>" + JsonConvert.SerializeObject(claims); 
                 }
 
-                Response.StatusCode = 401;
+                // set a query string param so UX can know unauth. See if you can use regular status code
                 Response.Redirect("/?l=f");
                 return string.Empty;
             }
