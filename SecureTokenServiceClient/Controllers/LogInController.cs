@@ -35,10 +35,9 @@ namespace SecureTokenServiceClient.Controllers
                 var tokenClient = new TokenClient();
                 var tokenResponse = await tokenClient.GetTokenAsync(body);
 
-                var claims = await tokenClient.GetClaimsAsync(tokenResponse.AuthToken);
-
                 if (tokenResponse.StatusCode == HttpStatusCode.OK)
                 {
+                      var claims = await tokenClient.GetClaimsAsync(tokenResponse.AuthToken);
                     return tokenResponse.AuthToken + "<br/>" + JsonConvert.SerializeObject(claims); 
                 }
 

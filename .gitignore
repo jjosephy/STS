@@ -9,9 +9,11 @@
 *.dll.config
 *.cache
 *.xml
+*.pfx
+*.pvk
+*.cer
 *.nupkg
 *.web.config.transform
-*.txt
 # Include dlls if they’re in the NuGet packages directory
 !/packages/*/lib/*.dll
 # Include dlls if they're in the CommonReferences directory

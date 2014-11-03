@@ -20,7 +20,9 @@ namespace JJ.SecureTokenService
         public void ConfigureAuth(IAppBuilder app)
         {
             var config = new HttpConfiguration();
-            config.MessageHandlers.Add(new CertificateHandler());
+
+            // TODO: figure out how to get client certificates
+            // config.MessageHandlers.Add(new CertificateHandler());
             
             OAuthBearerOptions = new OAuthAuthorizationServerOptions();
             app.UseOAuthAuthorizationServer(OAuthBearerOptions);
@@ -43,7 +45,7 @@ namespace JJ.SecureTokenService
             
             config.SuppressDefaultHostAuthentication();
             config.Filters.Add(new HostAuthenticationFilter("Bearer"));
-            
+
             app.UseWebApi(config);
         }
     }
