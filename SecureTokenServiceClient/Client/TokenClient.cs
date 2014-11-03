@@ -13,23 +13,32 @@ using System.Net.Http.Headers;
 using System.Net.Security;
 using System.IO;
 using System.Text;
+using TokenRequestEncryption;
+using System.Net.Http.Formatting;
+using SecureTokenServiceClient.MediaFormatter;
 
 namespace SecureTokenServiceClient.Client
 {
     public class TokenClient
     {
-        const int TimeOut = 2500;
+        const int TimeOut = 50000;
+        
+        /// <summary>
+        /// TODO: make sure to handle this error as it could throw if cert is not found
+        /// </summary>
+        static readonly TokenCryptoManager crypto = new TokenCryptoManager("localhost");
+
+        //readonly Uri baseUri = new Uri("http://localhost:8088");
         readonly Uri baseUri = new Uri("https://aliex:444");
         readonly HttpClient client;
 
         public TokenClient()
         {
-            
             var handler = new WebRequestHandler();
             handler.ClientCertificateOptions = ClientCertificateOption.Manual;
             handler.ClientCertificates.Add(GetClientCert());
             //not sure if this should be set or not
-            //handler.UseDefaultCredentials = true;
+            handler.UseDefaultCredentials = true;
             handler.UseProxy = false;
             ServicePointManager.ServerCertificateValidationCallback = 
                 new RemoteCertificateValidationCallback(ValidateServerCertificate);
@@ -50,13 +59,6 @@ namespace SecureTokenServiceClient.Client
             X509Chain chain, 
             SslPolicyErrors sslPolicyErrors)
         {
-            //if ( sslPolicyErrors == SslPolicyErrors.None )
-            //    return true;
-            //else
-            //{
-            //    return false;
-            //}
-
             return true;
         }
 
@@ -64,35 +66,13 @@ namespace SecureTokenServiceClient.Client
         {
             try
             {
-                //HttpWebRequest Request = (HttpWebRequest)WebRequest.Create("http://aliex:8088/token");
-                //Request.ClientCertificates.Add(GetClientCert());
-                //Request.UserAgent = "sample";
-                //Request.Method = "POST";
-
-                //UTF8Encoding encoding = new UTF8Encoding();
-                //byte[] byte1 = encoding.GetBytes(JsonConvert.SerializeObject(authentication));
-
-                //// Set the content type of the data being posted.
-                //Request.ContentType = "application/x-www-form-urlencoded";
-
-                //// Set the content length of the string being posted.
-                //Request.ContentLength = byte1.Length;
-
-                //Stream newStream = Request.GetRequestStream();
-
-                //newStream.Write(byte1, 0, byte1.Length);
-
-                //HttpWebResponse Response = (HttpWebResponse)Request.GetResponse();
+                var serialized = JsonConvert.SerializeObject(authentication);
+                var encrypted = crypto.Encrypt(serialized);
                 
-                //// Get the certificate data.
-                //using (var reader = new StreamReader(Response.GetResponseStream()))
-                //{
-                //    var str = await reader.ReadToEndAsync();
-                //}
-
-                var response = await this.client.GetAsync("/claims");
-
-                 response = await this.client.PostAsJsonAsync<AuthenticationModel>("/token", authentication);
+                var response = await this.client.PostAsync<string>(
+                    "/token", 
+                    encrypted, 
+                    new TextMediaFormatter());
 
                 var tokenResponse = new TokenResponseModel
                 {
@@ -101,7 +81,7 @@ namespace SecureTokenServiceClient.Client
 
                 var responseText = await response.Content.ReadAsStringAsync();
 
-                if ( response.StatusCode == HttpStatusCode.OK )
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
                     tokenResponse.AuthToken = responseText;
                 }

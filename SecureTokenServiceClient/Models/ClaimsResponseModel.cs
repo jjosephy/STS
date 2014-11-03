@@ -8,6 +8,13 @@ namespace SecureTokenServiceClient.Models
 {
     public class ClaimsResponseModel
     {
+        [JsonProperty(PropertyName = "authentication")]
+        public string Authentication
+        {
+            get;
+            set;
+        }
+
         [JsonProperty(PropertyName = "userName")]
         public string UserName
         {

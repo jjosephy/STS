@@ -1,0 +1,53 @@
+makecert -r -pe -n "CN=STS Root Authority" -ss CA -sr localmachine -a sha1 -sky signature -cy authority -sv STSCA.pvk STSCA.cer
+makecert -pe -n "CN=aliex" -a sha1 -sky Exchange -eku 1.3.6.1.5.5.7.3.1 -ic STSCA.cer -iv STSCA.pvk -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12 -sv STSServer.pvk STSServer.cer
+pvk2pfx -pvk STSServer.pvk -spc STSServer.cer -pfx STS.pfx -po ststest
+
+https://localhost:444/claims
+
+// Server Cert -sr localmachine
+makecert -r -pe -n "CN=STS Root Authority" -ss CA  -a sha1 -sky signature -cy authority -sv STSCA.pvk STSCA.cer
+
+// this is not self signed
+makecert -pe -n "CN=localhost" -a sha1 -sky Exchange -eku 1.3.6.1.5.5.7.3.1 -ic STSCA.cer -iv STSCA.pvk -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12 -sv STSServer.pvk STSServer.cer
+
+// this is self signed
+makecert -r -pe -n "CN=localhost" -a sha1 -sky Exchange -eku 1.3.6.1.5.5.7.3.1 -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12 -sv STSServer.pvk STSServer.cer
+
+// create pfx
+pvk2pfx -pvk STSServer.pvk -spc STSServer.cer -pfx STSServer.pfx -po ststest
+
+pvk2pfx -pvk STSCA.pvk -spc STSCA.cer -pfx STSServer.pfx -po ststest
+
+//Client Cert
+makecert -pe -n "CN=stsuser@stsserver.net" -a sha1 -sky exchange -eku 1.3.6.1.5.5.7.3.2 -ic STSCA.cer -iv STSCA.pvk -sv Client.pvk Client.cer
+pvk2pfx -pvk Client.pvk -spc Client.cer -pfx Client.pfx -po ststest
+
+appcmd.exe set config "STS" -section:system.webServer/security/authentication/iisClientCertificateMappingAuthentication /enabled:"True" /manyToOneCertificateMappingsEnabled:"True" /commit:apphost
+appcmd.exe set config "STS" -section:system.webServer/security/authentication/iisClientCertificateMappingAuthentication /enabled:"True" /oneToOneCertificateMappingsEnabled:"True" /commit:apphost
+
+// Notes
+//HttpWebRequest Request = (HttpWebRequest)WebRequest.Create("http://aliex:8088/token");
+//Request.ClientCertificates.Add(GetClientCert());
+//Request.UserAgent = "sample";
+//Request.Method = "POST";
+
+//UTF8Encoding encoding = new UTF8Encoding();
+//byte[] byte1 = encoding.GetBytes(JsonConvert.SerializeObject(authentication));
+
+//// Set the content type of the data being posted.
+//Request.ContentType = "application/x-www-form-urlencoded";
+
+//// Set the content length of the string being posted.
+//Request.ContentLength = byte1.Length;
+
+//Stream newStream = Request.GetRequestStream();
+
+//newStream.Write(byte1, 0, byte1.Length);
+
+//HttpWebResponse Response = (HttpWebResponse)Request.GetResponse();
+                
+//// Get the certificate data.
+//using (var reader = new StreamReader(Response.GetResponseStream()))
+//{
+//    var str = await reader.ReadToEndAsync();
+//}

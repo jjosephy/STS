@@ -103,11 +103,13 @@
     <Compile Include="Contracts\V1\TokenRequestV1.cs" />
     <Compile Include="Controllers\ClaimsController.cs" />
     <Compile Include="Controllers\TokenController.cs" />
+    <Compile Include="Extensions\HttpRequestMessageExtensions.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Handler\CertificateHandler.cs" />
-    <Compile Include="Models\ClaimsModel.cs" />
+    <Compile Include="HttpResponseMessages\ServiceResponseMessage.cs" />
+    <Compile Include="Contracts\V1\ClaimsResponseV1.cs" />
     <Compile Include="OwinStartUp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -122,6 +124,13 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Models\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TokenRequestEncryption\TokenRequestEncryption.csproj">
+      <Project>{7ca5558d-367f-456b-acb7-11e0e948b3a1}</Project>
+      <Name>TokenRequestEncryption</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

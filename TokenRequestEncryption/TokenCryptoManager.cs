@@ -29,7 +29,7 @@ namespace TokenRequestEncryption
             }
 
             return Convert.ToBase64String(
-                this.encryptProvidor.Encrypt(Encoding.UTF8.GetBytes(token), true));
+                this.encryptProvidor.Encrypt(Encoding.UTF8.GetBytes(token), false));
         }
 
         public string Decrypt(string encrypted)
@@ -40,7 +40,7 @@ namespace TokenRequestEncryption
             }
 
             return Encoding.UTF8.GetString(
-                this.decryptProvidor.Decrypt(Convert.FromBase64String(encrypted), true));
+                this.decryptProvidor.Decrypt(Convert.FromBase64String(encrypted), false));
         }
 
         private X509Certificate2 GetX509Certificate(string subjectName)

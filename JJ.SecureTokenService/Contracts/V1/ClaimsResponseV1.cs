@@ -4,10 +4,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace JJ.SecureTokenService.Models
+namespace JJ.SecureTokenService.Contracts.V1
 {
-    public class ClaimsModel
+    public class ClaimsResponseV1
     {
+        [JsonProperty(PropertyName = "authentication")]
+        public string Authentication
+        {
+            get;
+            set;
+        }
+
         [JsonProperty(PropertyName="userName")]
         public string UserName
         {
