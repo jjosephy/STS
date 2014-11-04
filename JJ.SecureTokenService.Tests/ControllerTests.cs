@@ -7,6 +7,8 @@ using JJ.SecureTokenService.Contracts.V1;
 using OwinSelfHostServer;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
+using TokenRequestEncryption;
+using Newtonsoft.Json;
 
 namespace JJ.SecureTokenService.Tests
 {
@@ -14,9 +16,10 @@ namespace JJ.SecureTokenService.Tests
     public class ControllerTests
     {
         /// <summary>
-        /// Base address for test host
+        /// Base address for test host. 
+        /// TODO: Figure out how to run OWIN under https
         /// </summary>
-        static Uri baseUri = new Uri("http://localhost:8080");
+        static Uri baseUri = new Uri("http://localhost:8085");
 
         /// <summary>
         /// OWIN Host for Testing Requests
@@ -46,10 +49,11 @@ namespace JJ.SecureTokenService.Tests
         [TestMethod]
         public async Task TokenController_TestPostV1()
         {
-            var response = await server.CreateRequestAsync<TokenRequestV1>(
+            var body = CreateEncryptedString<TokenRequestV1>(CreateRequestBodyV1());
+            var response = await server.CreateRequestAsync<string>(
                 HttpMethod.Post,
                 "/token",
-                value: CreateRequestBodyV1());
+                value: body);
 
             var token = await response.Content.ReadAsStringAsync();
             Assert.IsTrue(response.StatusCode == System.Net.HttpStatusCode.OK, "Status Codes do not match");
@@ -60,10 +64,11 @@ namespace JJ.SecureTokenService.Tests
         [TestMethod]
         public async Task TokenController_TestPostUnathorizedUserV1()
         {
-            var response = await server.CreateRequestAsync<TokenRequestV1>(
+            var body = CreateEncryptedString<TokenRequestV1>(CreateUnauthenticatedRequestBodyV1());
+            var response = await server.CreateRequestAsync<string>(
                 HttpMethod.Post,
                 "token",
-                value: CreateRequestBodyV1());
+                value: body);
 
             Assert.IsTrue(
                 response.StatusCode == System.Net.HttpStatusCode.Unauthorized, 
@@ -80,6 +85,18 @@ namespace JJ.SecureTokenService.Tests
             return true;
         }
 
+        /// <summary>
+        /// Encrypts a Request Body
+        /// </summary>
+        /// <typeparam name="TBody"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private string CreateEncryptedString<TBody>(TBody value)
+        {
+            var body = JsonConvert.SerializeObject(value);
+            return TokenCryptoManager.Instance.Encrypt(body);
+        }
+
         private TokenRequestV1 CreateRequestBodyV1()
         {
             return new TokenRequestV1
@@ -90,6 +107,15 @@ namespace JJ.SecureTokenService.Tests
                 AccessToken = Guid.NewGuid().ToString(),
                 UserName = "username",
                 MobilePhone = "1234567890"
+            };
+        }
+
+        private TokenRequestV1 CreateUnauthenticatedRequestBodyV1()
+        {
+            return new TokenRequestV1
+            {
+                Email = "test@test.com",
+                RelyingParty = "http://my.nordstrom.com",
             };
         }
     }

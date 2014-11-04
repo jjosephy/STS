@@ -1,7 +1,3 @@
-makecert -r -pe -n "CN=STS Root Authority" -ss CA -sr localmachine -a sha1 -sky signature -cy authority -sv STSCA.pvk STSCA.cer
-makecert -pe -n "CN=aliex" -a sha1 -sky Exchange -eku 1.3.6.1.5.5.7.3.1 -ic STSCA.cer -iv STSCA.pvk -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12 -sv STSServer.pvk STSServer.cer
-pvk2pfx -pvk STSServer.pvk -spc STSServer.cer -pfx STS.pfx -po ststest
-
 https://localhost:444/claims
 
 // Server Cert -sr localmachine
@@ -18,36 +14,20 @@ pvk2pfx -pvk STSServer.pvk -spc STSServer.cer -pfx STSServer.pfx -po ststest
 
 pvk2pfx -pvk STSCA.pvk -spc STSCA.cer -pfx STSServer.pfx -po ststest
 
-//Client Cert
-makecert -pe -n "CN=stsuser@stsserver.net" -a sha1 -sky exchange -eku 1.3.6.1.5.5.7.3.2 -ic STSCA.cer -iv STSCA.pvk -sv Client.pvk Client.cer
-pvk2pfx -pvk Client.pvk -spc Client.cer -pfx Client.pfx -po ststest
-
-appcmd.exe set config "STS" -section:system.webServer/security/authentication/iisClientCertificateMappingAuthentication /enabled:"True" /manyToOneCertificateMappingsEnabled:"True" /commit:apphost
-appcmd.exe set config "STS" -section:system.webServer/security/authentication/iisClientCertificateMappingAuthentication /enabled:"True" /oneToOneCertificateMappingsEnabled:"True" /commit:apphost
-
 // Notes
-//HttpWebRequest Request = (HttpWebRequest)WebRequest.Create("http://aliex:8088/token");
-//Request.ClientCertificates.Add(GetClientCert());
-//Request.UserAgent = "sample";
-//Request.Method = "POST";
+Cant get Client Certs to Work on either IIS or OWIN Hosted Servers so instead going to use a cert to encrypt request. 
+Not exactly what i want to do but cant make progress with client certs, seems like a bug. So going to do this for now.
 
-//UTF8Encoding encoding = new UTF8Encoding();
-//byte[] byte1 = encoding.GetBytes(JsonConvert.SerializeObject(authentication));
+1. Create a cert with above, name it local host. 
+- imported as IIS SSL cert (STSServer.pfx)
+- imported in localmachine\my to use as signing cert (STSServer.pfx)
+- import Authority in to localmachine\root (STSCA.cer)
+- needs perms of app pool user to private keys (should be NETWORK SERVICE)
 
-//// Set the content type of the data being posted.
-//Request.ContentType = "application/x-www-form-urlencoded";
+For some reason, even though this Cert Chain is trusted, IIS will not accept it.Also if i set it in an HttpRequest OWIN Self Host Servers
+dont seem to pick it up. I do not know how to use Client Certs with Web API, they dont seem to work. I think it is a bug. If we can change htis
+we should but for now i am going with cert signing by password. 
 
-//// Set the content length of the string being posted.
-//Request.ContentLength = byte1.Length;
-
-//Stream newStream = Request.GetRequestStream();
-
-//newStream.Write(byte1, 0, byte1.Length);
-
-//HttpWebResponse Response = (HttpWebResponse)Request.GetResponse();
-                
-//// Get the certificate data.
-//using (var reader = new StreamReader(Response.GetResponseStream()))
-//{
-//    var str = await reader.ReadToEndAsync();
-//}
+You can recreate a POST in Fiddler using this 
+POST: https://localhost:444/token
+e4IwjCCTWZKX0u5J36annGh1whWU7+9bhBTGdGL7m7wZVtbMpp3+zKgMeerNurAj1I2hTLNCfN9JJTtSvB71xfbdixvKeFMrV4o17JpmkaVt+oV4YkKDFedUqSF0hlpc2v1fACs++JwB1xRIEvj0W4r7BGVLd/TXjFFeBlntF26HUoh74jJ6eIIofkw16kiFt/xGJcbnlANrBbhLua4KOs4qxT+YQ18HstBSIMEU0dWpm6mVGotGDiduW3WYf69bdozRsWnbrQFzsYVLOSISIIEuyVRGQYwIW/qd7ced6w5m7SH+p+nfN/UkQJuvGGnP0dDmKK/1Zx14soqIqa4TDA==

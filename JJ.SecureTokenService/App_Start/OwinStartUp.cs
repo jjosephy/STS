@@ -1,5 +1,4 @@
-﻿using Microsoft.Owin.Security.OAuth;
-using Owin;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -9,6 +8,7 @@ using System.Web.Http;
 using System.Web.Http.Dispatcher;
 using Microsoft.Owin.Security.OAuth;
 using JJ.SecureTokenService.Handler;
+using Owin;
 
 namespace JJ.SecureTokenService
 {

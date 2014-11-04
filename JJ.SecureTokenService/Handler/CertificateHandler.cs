@@ -16,15 +16,10 @@ namespace JJ.SecureTokenService.Handler
             HttpRequestMessage request, 
             CancellationToken cancellationToken)
         {
-            var c = request.GetRequestContext().ClientCertificate;
             var cert = request.GetClientCertificate();
             if (cert != null)
             {
-                if ( cert.Subject.Contains("Some Name you are expecting"))
-                {
-                    Thread.CurrentPrincipal = new GenericPrincipal(
-                        new GenericIdentity(cert.Subject), new[] { "Administrators" });
-                }
+                // Not sure how this ever results in not null. Hope to find out
             }
 
             return base.SendAsync(request, cancellationToken);

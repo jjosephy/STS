@@ -65,7 +65,8 @@ namespace OwinSelfHostServer
             string uri,
             string authToken = "",
             TBody value = default(TBody),
-            double version = 1.0)
+            double version = 1.0,
+            string contentType = "text/plain")
         {
             // TODO: Add versioning
             
@@ -79,7 +80,15 @@ namespace OwinSelfHostServer
             }
             else if (method == HttpMethod.Post)
             {
-                return await client.PostAsJsonAsync<TBody>(uri, value);
+                if (contentType == "application/json")
+                {
+                    return await client.PostAsJsonAsync<TBody>(uri, value);
+                }
+                else
+                {
+                    return await client.PostAsync<TBody>(uri, value, new TextMediaFormatter());
+                }
+                
             }
             else if (method == HttpMethod.Delete)
             {

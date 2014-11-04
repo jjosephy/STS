@@ -38,8 +38,10 @@ namespace JJ.SecureTokenService.Controllers
         /// <returns>An OAuth2 Bearer Token</returns>
         public async Task<HttpResponseMessage> Post()
         {
+            // TODO: validate relying party
             try
             {
+                // TODO: decrypt and context creation should be done in a message handler.
                 var decrypted = this.Request.DecryptBody(await this.Request.Content.ReadAsStringAsync());
                 if (string.IsNullOrWhiteSpace(decrypted))
                 {
@@ -52,7 +54,20 @@ namespace JJ.SecureTokenService.Controllers
                     return ServiceResponseMessage.Unauthorized();
                 }
 
+                if (string.IsNullOrWhiteSpace(body.UserName) 
+                    && string.IsNullOrWhiteSpace(body.Password)
+                    && string.IsNullOrWhiteSpace(body.MobilePhone))
+                {
+                    return ServiceResponseMessage.Unauthorized();
+                }
+
+                var auth = "Partial";
                 // TODO: need to do full user auth
+                if (body.UserName == "full" && body.Password == "pass")
+                {
+                    auth = "Full";
+                }
+
                 // Create Identity and Set Claims
                 var authType = OwinStartUp.OAuthBearerOptions.AuthenticationType;
                 var identity = new ClaimsIdentity(authType);
@@ -62,7 +77,7 @@ namespace JJ.SecureTokenService.Controllers
                 identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()));
                 identity.AddClaim(new Claim(ClaimTypes.Email, body.Email));
                 identity.AddClaim(new Claim(ClaimTypes.MobilePhone, body.MobilePhone));
-                identity.AddClaim(new Claim(ClaimTypes.Authentication, "Partial"));
+                identity.AddClaim(new Claim(ClaimTypes.Authentication, auth));
 
                 var properties = new AuthenticationProperties
                 {
@@ -77,6 +92,7 @@ namespace JJ.SecureTokenService.Controllers
                 // Set expiration
                 ticket.Properties.ExpiresUtc = currentUtc.Add(TimeSpan.FromMinutes(30));
 
+                // TODO: ticket needs to be signed with a certificate.
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent(OwinStartUp.OAuthBearerOptions.AccessTokenFormat.Protect(ticket))

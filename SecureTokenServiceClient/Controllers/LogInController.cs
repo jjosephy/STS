@@ -17,6 +17,7 @@ namespace SecureTokenServiceClient.Controllers
     {
         const string RelyingParty = "http://custom.content.net";
         static Guid AppId = new Guid("8A8B6062-2657-43D4-83A3-9A6BEB8E1EF4");
+        static TokenClient tokenClient = new TokenClient();
 
         // GET: LogIn
         public async Task<string> Index(string email, string password, string username, string mobile)
@@ -31,10 +32,8 @@ namespace SecureTokenServiceClient.Controllers
                     UserName = username,
                     MobilePhone = mobile
                 };
-
-                var tokenClient = new TokenClient();
+                
                 var tokenResponse = await tokenClient.GetTokenAsync(body);
-
                 if (tokenResponse.StatusCode == HttpStatusCode.OK)
                 {
                     var claims = await tokenClient.GetClaimsAsync(tokenResponse.AuthToken);

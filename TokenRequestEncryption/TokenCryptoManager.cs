@@ -8,17 +8,54 @@ using System.Threading.Tasks;
 
 namespace TokenRequestEncryption
 {
-    public class TokenCryptoManager
+    /// <summary>
+    /// TODO: make this a singleton
+    /// </summary>
+    public sealed class TokenCryptoManager
     {
+        /// <summary>
+        /// This needs to be configured. Also tested if it doesnt exist, lots of dragons lie within
+        /// </summary>
+        private const string SubjectName = "localhost";
+        private static volatile TokenCryptoManager instance;
+        private static object syncRoot = new Object();
+
         readonly X509Certificate2 certificate;
         readonly RSACryptoServiceProvider encryptProvidor;
         readonly RSACryptoServiceProvider decryptProvidor;
 
-        public TokenCryptoManager(string certSubjectName)
+        /// <summary>
+        /// TODO: an exception will be thrown if certificate private keys are null should protect that
+        /// </summary>
+        /// <param name="certSubjectName"></param>
+        private TokenCryptoManager()
         {
-            this.certificate = GetX509Certificate(certSubjectName);
+            this.certificate = GetX509Certificate(SubjectName);
             this.encryptProvidor = (RSACryptoServiceProvider)certificate.PublicKey.Key;
             this.decryptProvidor = (RSACryptoServiceProvider)certificate.PrivateKey;
+        }
+
+
+        /// <summary>
+        /// Singleton Accessor
+        /// </summary>
+        public static TokenCryptoManager Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    lock (syncRoot)
+                    {
+                        if (instance == null)
+                        {
+                            instance = new TokenCryptoManager();
+                        }
+                    }
+                }
+
+                return instance;
+            }
         }
 
         public string Encrypt(string token)
@@ -41,6 +78,14 @@ namespace TokenRequestEncryption
 
             return Encoding.UTF8.GetString(
                 this.decryptProvidor.Decrypt(Convert.FromBase64String(encrypted), false));
+        }
+
+        public X509Certificate2 Certificate
+        {
+            get
+            {
+                return this.certificate;
+            }
         }
 
         private X509Certificate2 GetX509Certificate(string subjectName)

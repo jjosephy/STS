@@ -21,30 +21,27 @@ namespace SecureTokenServiceClient.Client
 {
     public class TokenClient
     {
-        const int TimeOut = 50000;
-        
         /// <summary>
-        /// TODO: make sure to handle this error as it could throw if cert is not found
+        /// If timeout occurs then the task will be aborted so be prepared for what badness might happen.
         /// </summary>
-        static readonly TokenCryptoManager crypto = new TokenCryptoManager("localhost");
+        const int TimeOut = 5000;
 
-        //readonly Uri baseUri = new Uri("http://localhost:8088");
-        readonly Uri baseUri = new Uri("https://aliex:444");
+        /// <summary>
+        ///  The url of the Token Service. Needs to be configured
+        /// </summary>
+        readonly Uri baseUri = new Uri("https://localhost:444");
+
+        /// <summary>
+        /// Http Client used to fire requests to the service
+        /// </summary>
         readonly HttpClient client;
 
+        /// <summary>
+        /// Default Ctor
+        /// </summary>
         public TokenClient()
         {
-            var handler = new WebRequestHandler();
-            handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-            handler.ClientCertificates.Add(GetClientCert());
-            //not sure if this should be set or not
-            handler.UseDefaultCredentials = true;
-            handler.UseProxy = false;
-            ServicePointManager.ServerCertificateValidationCallback = 
-                new RemoteCertificateValidationCallback(ValidateServerCertificate);
-            //handler.AuthenticationLevel = System.Net.Security.AuthenticationLevel.MutualAuthRequired;
-
-            client = new HttpClient(handler)
+            client = new HttpClient()
             {
                 BaseAddress = baseUri,
                 Timeout = new TimeSpan(0, 0, 0, 0, TimeOut)
@@ -53,25 +50,18 @@ namespace SecureTokenServiceClient.Client
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public static bool ValidateServerCertificate(
-            object sender, 
-            X509Certificate certificate, 
-            X509Chain chain, 
-            SslPolicyErrors sslPolicyErrors)
-        {
-            return true;
-        }
-
+        /// <summary>
+        /// Gets a Token from the Token Service
+        /// </summary>
+        /// <param name="authentication">The authentication body</param>
+        /// <returns></returns>
         public async Task<TokenResponseModel> GetTokenAsync(AuthenticationModel authentication)
         {
             try
             {
-                var serialized = JsonConvert.SerializeObject(authentication);
-                var encrypted = crypto.Encrypt(serialized);
-                
                 var response = await this.client.PostAsync<string>(
                     "/token", 
-                    encrypted, 
+                    TokenCryptoManager.Instance.Encrypt(JsonConvert.SerializeObject(authentication)), 
                     new TextMediaFormatter());
 
                 var tokenResponse = new TokenResponseModel
@@ -80,18 +70,22 @@ namespace SecureTokenServiceClient.Client
                 };
 
                 var responseText = await response.Content.ReadAsStringAsync();
-
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    tokenResponse.AuthToken = responseText;
+                    return new TokenResponseModel
+                    {
+                        StatusCode = response.StatusCode,
+                        AuthToken = responseText
+                    };
                 }
                 else
                 {
-                    tokenResponse.Message = responseText;
+                    return new TokenResponseModel
+                    {
+                        StatusCode = response.StatusCode,
+                        Message = responseText
+                    };
                 }
-
-                return tokenResponse;
-
             }
             catch (Exception ex)
             {
@@ -101,9 +95,14 @@ namespace SecureTokenServiceClient.Client
             
         }
 
+        /// <summary>
+        /// Gets the Claims that are associated with a Token
+        /// </summary>
+        /// <param name="token">The token to get the claims for</param>
+        /// <returns>An awaitable Task that results in a ClaimsResponseModel</returns>
         public async Task<ClaimsResponseModel> GetClaimsAsync(string token)
         {
-            this.client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            this.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await this.client.GetAsync("/claims");
 
@@ -113,31 +112,6 @@ namespace SecureTokenServiceClient.Client
             }
 
             return new ClaimsResponseModel();
-        }
-
-        private X509Certificate GetClientCert()
-        {
-            X509Store store = null;
-            try
-            {
-                store = new X509Store(StoreName.Root, StoreLocation.LocalMachine);
-                store.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly);
-
-                var certs = store.Certificates.Find(X509FindType.FindBySubjectName, "localhost", true);
-
-                if ( certs.Count == 1 )
-                {
-                    var cert = certs[0];
-                    return cert;
-                }
-            }
-            finally
-            {
-                if ( store != null )
-                    store.Close();
-            }
-
-            return null;
         }
     }
 }

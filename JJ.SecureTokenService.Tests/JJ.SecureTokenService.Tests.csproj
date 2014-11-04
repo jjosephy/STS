@@ -93,6 +93,10 @@
       <Project>{e10f5aa6-cf11-4ecf-9eb7-6de979420332}</Project>
       <Name>OwinSelfHostServer</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TokenRequestEncryption\TokenRequestEncryption.csproj">
+      <Project>{7ca5558d-367f-456b-acb7-11e0e948b3a1}</Project>
+      <Name>TokenRequestEncryption</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

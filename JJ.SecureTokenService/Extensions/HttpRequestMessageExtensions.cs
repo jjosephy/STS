@@ -9,11 +9,9 @@ namespace JJ.SecureTokenService.Extensions
 {
     public static class HttpRequestMessageExtensions
     {
-        static readonly TokenCryptoManager crypto = new TokenCryptoManager("localhost");
-
         public static string DecryptBody(this HttpRequestMessage request, string encrypted)
         {
-            return crypto.Decrypt(encrypted);
+            return TokenCryptoManager.Instance.Decrypt(encrypted);
         }
     }
 }
