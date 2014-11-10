@@ -23,6 +23,7 @@ namespace JJ.SecureTokenService
 
             // TODO: figure out how to get client certificates
             // config.MessageHandlers.Add(new CertificateHandler());
+            config.MessageHandlers.Add(new ValidateRequestHandler());
             
             OAuthBearerOptions = new OAuthAuthorizationServerOptions();
             app.UseOAuthAuthorizationServer(OAuthBearerOptions);

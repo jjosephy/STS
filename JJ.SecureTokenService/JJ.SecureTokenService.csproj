@@ -100,6 +100,10 @@
     <Compile Include="App_Start\OwinStartUp.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="AssemblyResolver\AssemblyResolver.cs" />
+    <Compile Include="Application\STSConstants.cs" />
+    <Compile Include="Authentication\AuthenticationProvider.cs" />
+    <Compile Include="Authentication\AuthenticationProviderFactory.cs" />
+    <Compile Include="Contracts\TokenRequestBase.cs" />
     <Compile Include="Contracts\V1\TokenRequestV1.cs" />
     <Compile Include="Controllers\ClaimsController.cs" />
     <Compile Include="Controllers\TokenController.cs" />
@@ -108,10 +112,13 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Handler\CertificateHandler.cs" />
+    <Compile Include="Handler\ValidateRequestHandler.cs" />
     <Compile Include="HttpResponseMessages\ServiceResponseMessage.cs" />
     <Compile Include="Contracts\V1\ClaimsResponseV1.cs" />
     <Compile Include="OwinStartUp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RequestContext\ITokenServiceRequestContext.cs" />
+    <Compile Include="RequestContext\TokenServiceRequestContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />

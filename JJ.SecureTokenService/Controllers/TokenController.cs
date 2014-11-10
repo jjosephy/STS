@@ -14,6 +14,9 @@ using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.OAuth;
 using Newtonsoft.Json;
+using JJ.SecureTokenService.Application;
+using JJ.SecureTokenService.RequestContext;
+using JJ.SecureTokenService.Contracts;
 
 namespace JJ.SecureTokenService.Controllers
 {
@@ -38,46 +41,32 @@ namespace JJ.SecureTokenService.Controllers
         /// <returns>An OAuth2 Bearer Token</returns>
         public async Task<HttpResponseMessage> Post()
         {
-            // TODO: validate relying party
             try
             {
-                // TODO: decrypt and context creation should be done in a message handler.
-                var decrypted = this.Request.DecryptBody(await this.Request.Content.ReadAsStringAsync());
-                if (string.IsNullOrWhiteSpace(decrypted))
+                var requestContext = this.Request.Properties[STSConstants.STSRequestContext] as ITokenServiceRequestContext;
+                if (requestContext == null)
                 {
-                    return ServiceResponseMessage.Unauthorized();
-                }
-
-                var body = JsonConvert.DeserializeObject<TokenRequestV1>(decrypted);
-                if (body == null)
-                {
-                    return ServiceResponseMessage.Unauthorized();
-                }
-
-                if (string.IsNullOrWhiteSpace(body.UserName) 
-                    && string.IsNullOrWhiteSpace(body.Password)
-                    && string.IsNullOrWhiteSpace(body.MobilePhone))
-                {
-                    return ServiceResponseMessage.Unauthorized();
-                }
-
-                var auth = "Partial";
-                // TODO: need to do full user auth
-                if (body.UserName == "full" && body.Password == "pass")
-                {
-                    auth = "Full";
+                    throw new HttpResponseException(ServiceResponseMessage.BadRequest("STS Context is null"));
                 }
 
                 // Create Identity and Set Claims
                 var authType = OwinStartUp.OAuthBearerOptions.AuthenticationType;
                 var identity = new ClaimsIdentity(authType);
 
-                // TODO: validate the parts
-                identity.AddClaim(new Claim(ClaimTypes.Name, body.UserName));
-                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()));
-                identity.AddClaim(new Claim(ClaimTypes.Email, body.Email));
-                identity.AddClaim(new Claim(ClaimTypes.MobilePhone, body.MobilePhone));
-                identity.AddClaim(new Claim(ClaimTypes.Authentication, auth));
+                /// LEFTOFF - make this code cleaner, create type by version (type converter). Also take authprovider, 
+                /// start building simple factory and inject providers
+                if (requestContext.Version == 1.0)
+                {
+                    // push auth rules to plug ins and take a provider/default provider and pass provider in request
+
+                    var body = requestContext.TokenRequestBody as TokenRequestV1;
+                    // TODO: validate the parts
+                    identity.AddClaim(new Claim(ClaimTypes.Name, body.UserName));
+                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()));
+                    identity.AddClaim(new Claim(ClaimTypes.Email, body.Email));
+                    identity.AddClaim(new Claim(ClaimTypes.MobilePhone, body.MobilePhone));
+                    identity.AddClaim(new Claim(ClaimTypes.Authentication, "Partial"));
+                }
 
                 var properties = new AuthenticationProperties
                 {
@@ -92,7 +81,7 @@ namespace JJ.SecureTokenService.Controllers
                 // Set expiration
                 ticket.Properties.ExpiresUtc = currentUtc.Add(TimeSpan.FromMinutes(30));
 
-                // TODO: ticket needs to be signed with a certificate.
+                // TODO: ticket needs to be signed with a certificate. Create new signing cert and use that same cert of other services.
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent(OwinStartUp.OAuthBearerOptions.AccessTokenFormat.Protect(ticket))
@@ -110,7 +99,6 @@ namespace JJ.SecureTokenService.Controllers
             {
                  // Log event
             }
-            
         }
     }
 }

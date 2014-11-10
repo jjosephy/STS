@@ -24,7 +24,7 @@ namespace SecureTokenServiceClient.Client
         /// <summary>
         /// If timeout occurs then the task will be aborted so be prepared for what badness might happen.
         /// </summary>
-        const int TimeOut = 5000;
+        const int TimeOut = 500000;
 
         /// <summary>
         ///  The url of the Token Service. Needs to be configured

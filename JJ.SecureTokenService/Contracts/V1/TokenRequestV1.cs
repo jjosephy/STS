@@ -7,24 +7,10 @@ using Newtonsoft.Json;
 
 namespace JJ.SecureTokenService.Contracts.V1
 {
-    public class TokenRequestV1
+    public class TokenRequestV1 : TokenRequestBase
     {
-        [JsonProperty(PropertyName = "accessToken")]
-        public string AccessToken
-        {
-            get;
-            set;
-        }
-
         [JsonProperty(PropertyName = "email")]
         public string Email
-        {
-            get;
-            set;
-        }
-
-        [JsonProperty(PropertyName = "extensionId")]
-        public string ExtenstionId
         {
             get;
             set;
@@ -53,13 +39,6 @@ namespace JJ.SecureTokenService.Contracts.V1
 
         [JsonProperty(PropertyName = "redirectUrl")]
         public string RedirectUrl
-        {
-            get;
-            set;
-        }
-
-        [JsonProperty(PropertyName = "relyingParty")]
-        public string RelyingParty
         {
             get;
             set;

@@ -14,7 +14,15 @@ namespace OwinSelfHostServer
 {
     public class Server<T>
     {
-        readonly HttpClient client;
+        const string RequestVersionHeader = "x-api-version";
+        const string AuthorizationHeaderTokenName = "Bearer";
+        const string CorrelationIdHeader = "x-correlation-id";
+        const string RelyingPartyHeader = "relyingParty";
+
+        readonly Uri baseUri;
+        readonly int timeOut;
+        readonly Func<object, X509Certificate, X509Chain, SslPolicyErrors, bool> validateFunc;
+        readonly X509Certificate clientCert;
 
         private Server(
             Uri baseUri, 
@@ -22,34 +30,16 @@ namespace OwinSelfHostServer
             int timeOut,
             Func<object, X509Certificate, X509Chain, SslPolicyErrors, bool> validateCertificate)
         {
-            var handler = new WebRequestHandler();
-            if (clientCert  != null)
-            {
-                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-                handler.ClientCertificates.Add(clientCert);
-                handler.UseDefaultCredentials = true;
-                handler.UseProxy = false;
-
-                if (validateCertificate != null)
-                {
-                    ServicePointManager.ServerCertificateValidationCallback =
-                        new RemoteCertificateValidationCallback(validateCertificate);
-                }
-            }
-
-            client = new HttpClient(handler)
-            {
-                BaseAddress = baseUri,
-                Timeout = new TimeSpan(0, 0, 0, 0, timeOut)
-            };
-
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            this.validateFunc = validateCertificate;
+            this.baseUri = baseUri;
+            this.timeOut = timeOut;
+            this.clientCert = clientCert;
         }
 
         public static Server<T> Create(
             Uri baseUri, 
             X509Certificate clientCert = null,
-            int clientTimeout = 2000,
+            int clientTimeout = 60000,
             Func<object, X509Certificate, X509Chain, SslPolicyErrors, bool> validateCertificate = null)
         {
             WebApp.Start<T>(url: baseUri.AbsoluteUri);
@@ -66,46 +56,69 @@ namespace OwinSelfHostServer
             string authToken = "",
             TBody value = default(TBody),
             double version = 1.0,
-            string contentType = "text/plain")
+            string contentType = "text/plain",
+            string versionHeaderName = RequestVersionHeader,
+            string authorizationHeaderName = AuthorizationHeaderTokenName,
+            string relyingParty = "http://sts.com",
+            Guid? correlationId = null)
         {
-            // TODO: Add versioning
-            
-            // TODO: For now always add bearer token, change this later
-            client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", authToken);
+            var handler = new WebRequestHandler();
 
-            if (method == HttpMethod.Get)
+            if (this.clientCert != null)
             {
-                return await client.GetAsync(uri);
-            }
-            else if (method == HttpMethod.Post)
-            {
-                if (contentType == "application/json")
+                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                handler.ClientCertificates.Add(clientCert);
+                handler.UseDefaultCredentials = true;
+                handler.UseProxy = false;
+
+                if (this.validateFunc != null)
                 {
-                    return await client.PostAsJsonAsync<TBody>(uri, value);
+                    ServicePointManager.ServerCertificateValidationCallback =
+                        new RemoteCertificateValidationCallback(this.validateFunc);
                 }
-                else
-                {
-                    return await client.PostAsync<TBody>(uri, value, new TextMediaFormatter());
-                }
-                
             }
-            else if (method == HttpMethod.Delete)
+
+            using (var client = new HttpClient(handler)
             {
-                return await client.DeleteAsync(uri);
+                BaseAddress = baseUri,
+                Timeout = new TimeSpan(0, 0, 0, 0, timeOut)
+            })
+            {
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Add(versionHeaderName, version.ToString());
+                client.DefaultRequestHeaders.Add(RelyingPartyHeader, relyingParty);
+                client.DefaultRequestHeaders.Add(CorrelationIdHeader,
+                    correlationId == null ? Guid.Empty.ToString() : correlationId.Value.ToString());
+
+                if (!string.IsNullOrWhiteSpace(authToken))
+                {
+                    client.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue(authorizationHeaderName, authToken);
+                }
+
+                if (method == HttpMethod.Get)
+                {
+                    return await client.GetAsync(uri);
+                }
+                else if ( method == HttpMethod.Post )
+                {
+                    if (contentType == "application/json")
+                    {
+                        return await client.PostAsJsonAsync<TBody>(uri, value);
+                    }
+                    else
+                    {
+                        return await client.PostAsync<TBody>(uri, value, new TextMediaFormatter());
+                    }
+
+                }
+                else if (method == HttpMethod.Delete)
+                {
+                    return await client.DeleteAsync(uri);
+                }
             }
 
             throw new NotSupportedException("Method not supported");
-        }
-
-        public void Dispose()
-        {
-            if (client != null)
-            {
-                client.Dispose();
-            }
-
-            GC.SuppressFinalize(this);
         }
     }
 }

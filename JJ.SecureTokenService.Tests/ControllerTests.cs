@@ -36,6 +36,12 @@ namespace JJ.SecureTokenService.Tests
         /// </summary>
         const string CertSubjectName = "localhost";
 
+        /// <summary>
+        /// Test Relying Party.
+        /// </summary>
+        const string RelyingParth = "http://jj.sts.test.com";
+
+
         [ClassInitialize()]
         public static void ClassInit(TestContext context)
         {
@@ -47,32 +53,66 @@ namespace JJ.SecureTokenService.Tests
         }
 
         [TestMethod]
-        public async Task TokenController_TestPostV1()
+        public async Task TokenController_TestPost_V1()
         {
+            Guid correlationId = Guid.NewGuid();
             var body = CreateEncryptedString<TokenRequestV1>(CreateRequestBodyV1());
             var response = await server.CreateRequestAsync<string>(
                 HttpMethod.Post,
                 "/token",
-                value: body);
+                value: body,
+                relyingParty: RelyingParth,
+                correlationId: correlationId);
 
             var token = await response.Content.ReadAsStringAsync();
             Assert.IsTrue(response.StatusCode == System.Net.HttpStatusCode.OK, "Status Codes do not match");
             Assert.IsFalse(string.IsNullOrWhiteSpace(token), "Token is an empty string");
-
         }
 
         [TestMethod]
-        public async Task TokenController_TestPostUnathorizedUserV1()
+        public async Task TokenController_TestPostInvalidCorrelationId_V1()
         {
-            var body = CreateEncryptedString<TokenRequestV1>(CreateUnauthenticatedRequestBodyV1());
             var response = await server.CreateRequestAsync<string>(
                 HttpMethod.Post,
                 "token",
-                value: body);
+                value: CreateEncryptedString<TokenRequestV1>(CreateRequestBodyV1()),
+                relyingParty: RelyingParth,
+                correlationId: null);
 
             Assert.IsTrue(
-                response.StatusCode == System.Net.HttpStatusCode.Unauthorized, 
-                "Incorrect Response Code Returned, should be 401");
+                response.StatusCode == System.Net.HttpStatusCode.BadRequest, 
+                "Incorrect Response Code Returned, should be 400");
+        }
+
+        [TestMethod]
+        public async Task TokenController_TestPostInvalidVersion_V1()
+        {
+            var response = await server.CreateRequestAsync<string>(
+                HttpMethod.Post,
+                "token",
+                version: 0,
+                value: CreateEncryptedString<TokenRequestV1>(CreateRequestBodyV1()),
+                relyingParty: RelyingParth,
+                correlationId: Guid.NewGuid());
+
+            Assert.IsTrue(
+                response.StatusCode == System.Net.HttpStatusCode.BadRequest,
+                "Incorrect Response Code Returned, should be 400");
+        }
+
+        [TestMethod]
+        public async Task TokenController_TestPostInvalidRelyingParty_V1()
+        {
+            var response = await server.CreateRequestAsync<string>(
+                HttpMethod.Post,
+                "token",
+                value: CreateEncryptedString<TokenRequestV1>(CreateRequestBodyV1()),
+                relyingParty: RelyingParth,
+                correlationId: null);
+
+            Assert.IsTrue(
+                response.StatusCode == System.Net.HttpStatusCode.BadRequest,
+                "Incorrect Response Code Returned, should be 400");
         }
 
         public static bool ValidateServerCertificate(
@@ -102,11 +142,11 @@ namespace JJ.SecureTokenService.Tests
             return new TokenRequestV1
             {
                 Email = "test@test.com",
-                RelyingParty = "http://my.nordstrom.com",
                 Password = "password",
                 AccessToken = Guid.NewGuid().ToString(),
                 UserName = "username",
-                MobilePhone = "1234567890"
+                MobilePhone = "1234567890",
+                AuthenticationProvider = Authentication.AuthenticationProvider.TestProvider
             };
         }
 
@@ -115,7 +155,7 @@ namespace JJ.SecureTokenService.Tests
             return new TokenRequestV1
             {
                 Email = "test@test.com",
-                RelyingParty = "http://my.nordstrom.com",
+                AuthenticationProvider = Authentication.AuthenticationProvider.TestProvider
             };
         }
     }

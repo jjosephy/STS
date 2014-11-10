@@ -57,13 +57,6 @@ namespace SecureTokenServiceClient.Models
             set;
         }
 
-        [JsonProperty(PropertyName = "relyingParty")]
-        public string RelyingParty
-        {
-            get;
-            set;
-        }
-
         [JsonProperty(PropertyName = "username")]
         public string UserName
         {

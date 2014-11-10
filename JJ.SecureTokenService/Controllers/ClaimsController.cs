@@ -17,7 +17,6 @@ namespace JJ.SecureTokenService.Controllers
         public HttpResponseMessage Get()
         {
             var identity = this.User.Identity as ClaimsIdentity;
-
             if (identity == null)
             {
                 return ServiceResponseMessage.BadRequest("Could not parse identity as claims identity");

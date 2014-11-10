@@ -8,13 +8,16 @@ using System.Web;
 
 namespace JJ.SecureTokenService.HttpResponseMessages
 {
+    /// <summary>
+    /// Wrapper methods to easily return messages. Each one of these messages should log
+    /// </summary>
     public class ServiceResponseMessage
     {
         public static HttpResponseMessage Unauthorized()
         {
             return new HttpResponseMessage(HttpStatusCode.Unauthorized)
             {
-                Content = new StringContent("unathorized")
+                Content = new StringContent("Unathorized")
             };
         } 
 

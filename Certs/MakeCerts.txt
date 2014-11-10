@@ -14,6 +14,9 @@ pvk2pfx -pvk STSServer.pvk -spc STSServer.cer -pfx STSServer.pfx -po ststest
 
 pvk2pfx -pvk STSCA.pvk -spc STSCA.cer -pfx STSServer.pfx -po ststest
 
+// create a signing cert 
+makecert -pe -n "CN=STS Signing Authority" -a sha1 -sky Exchange -eku 1.3.6.1.5.5.7.3.1 -ic STSCA.cer -iv STSCA.pvk -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12 -sv STSSigning.pvk STSSigning.cer
+
 // Notes
 Cant get Client Certs to Work on either IIS or OWIN Hosted Servers so instead going to use a cert to encrypt request. 
 Not exactly what i want to do but cant make progress with client certs, seems like a bug. So going to do this for now.
