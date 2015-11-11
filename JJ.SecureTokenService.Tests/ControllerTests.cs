@@ -56,15 +56,18 @@ namespace JJ.SecureTokenService.Tests
         public async Task TokenController_TestPost_V1()
         {
             Guid correlationId = Guid.NewGuid();
-            var body = CreateEncryptedString<TokenRequestV1>(CreateRequestBodyV1());
-            var response = await server.CreateRequestAsync<string>(
+            var body = CreateRequestBodyV1();
+            var response = await server.CreateRequestAsync<TokenRequestV1>(
                 HttpMethod.Post,
                 "/token",
+                contentType: "application/json",
                 value: body,
                 relyingParty: RelyingParth,
                 correlationId: correlationId);
 
             var token = await response.Content.ReadAsStringAsync();
+            var decrypted = TokenCryptoManager.Instance.Decrypt(token);
+
             Assert.IsTrue(response.StatusCode == System.Net.HttpStatusCode.OK, "Status Codes do not match");
             Assert.IsFalse(string.IsNullOrWhiteSpace(token), "Token is an empty string");
         }

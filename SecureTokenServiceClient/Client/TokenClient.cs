@@ -34,20 +34,20 @@ namespace SecureTokenServiceClient.Client
         /// <summary>
         /// Http Client used to fire requests to the service
         /// </summary>
-        readonly HttpClient client;
+        //readonly HttpClient client;
 
         /// <summary>
         /// Default Ctor
         /// </summary>
         public TokenClient()
         {
-            client = new HttpClient()
-            {
-                BaseAddress = baseUri,
-                Timeout = new TimeSpan(0, 0, 0, 0, TimeOut)
-            };
+            //client = new HttpClient()
+            //{
+            //    BaseAddress = baseUri,
+            //    Timeout = new TimeSpan(0, 0, 0, 0, TimeOut)
+            //};
 
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         /// <summary>
@@ -59,9 +59,20 @@ namespace SecureTokenServiceClient.Client
         {
             try
             {
-                var response = await this.client.PostAsync<string>(
+                var client = new HttpClient()
+                {
+                    BaseAddress = baseUri,
+                    Timeout = new TimeSpan(0, 0, 0, 0, TimeOut)
+                };
+
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add("x-api-version", "1.0");
+                client.DefaultRequestHeaders.Add("x-correlation-id", Guid.NewGuid().ToString());
+                client.DefaultRequestHeaders.Add("relyingParty", "http://jj.tokenclient.com");
+                var response = await client.PostAsync<string>(
                     "/token", 
-                    TokenCryptoManager.Instance.Encrypt(JsonConvert.SerializeObject(authentication)), 
+                    JsonConvert.SerializeObject(authentication), 
                     new TextMediaFormatter());
 
                 var tokenResponse = new TokenResponseModel
@@ -102,9 +113,15 @@ namespace SecureTokenServiceClient.Client
         /// <returns>An awaitable Task that results in a ClaimsResponseModel</returns>
         public async Task<ClaimsResponseModel> GetClaimsAsync(string token)
         {
-            this.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var client = new HttpClient()
+            {
+                BaseAddress = baseUri,
+                Timeout = new TimeSpan(0, 0, 0, 0, TimeOut)
+            };
 
-            var response = await this.client.GetAsync("/claims");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync("/claims");
 
             if (response.StatusCode == HttpStatusCode.OK)
             {

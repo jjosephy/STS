@@ -105,6 +105,7 @@
     <Compile Include="Authentication\AuthenticationProviderFactory.cs" />
     <Compile Include="Contracts\TokenRequestBase.cs" />
     <Compile Include="Contracts\V1\TokenRequestV1.cs" />
+    <Compile Include="Contracts\V1\TokenResponseV1.cs" />
     <Compile Include="Controllers\ClaimsController.cs" />
     <Compile Include="Controllers\TokenController.cs" />
     <Compile Include="Extensions\HttpRequestMessageExtensions.cs" />

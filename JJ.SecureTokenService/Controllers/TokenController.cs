@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using JJ.SecureTokenService.Application;
 using JJ.SecureTokenService.RequestContext;
 using JJ.SecureTokenService.Contracts;
+using TokenRequestEncryption;
 
 namespace JJ.SecureTokenService.Controllers
 {
@@ -82,9 +83,19 @@ namespace JJ.SecureTokenService.Controllers
                 ticket.Properties.ExpiresUtc = currentUtc.Add(TimeSpan.FromMinutes(30));
 
                 // TODO: ticket needs to be signed with a certificate. Create new signing cert and use that same cert of other services.
+                //TokenCryptoManager.Instance.Decrypt(
+                var token = OwinStartUp.OAuthBearerOptions.AccessTokenFormat.Protect(ticket);
+                //var content = new StringContent(TokenCryptoManager.Instance.Encrypt(token));
+
+                var jwt = new TokenResponseV1
+                {
+                    Token = token, 
+                    AuthLevel = "full"
+                };
+
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    Content = new StringContent(OwinStartUp.OAuthBearerOptions.AccessTokenFormat.Protect(ticket))
+                    Content = new StringContent(JsonConvert.SerializeObject(jwt))
                 };
             }
             catch (Exception ex)

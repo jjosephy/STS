@@ -100,7 +100,7 @@ namespace OwinSelfHostServer
                 {
                     return await client.GetAsync(uri);
                 }
-                else if ( method == HttpMethod.Post )
+                else if (method == HttpMethod.Post)
                 {
                     if (contentType == "application/json")
                     {

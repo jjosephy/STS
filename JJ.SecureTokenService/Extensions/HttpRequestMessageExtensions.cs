@@ -100,7 +100,7 @@ namespace JJ.SecureTokenService.Extensions
         {
             try
             {
-                var body = request.DecryptBody(await request.Content.ReadAsStringAsync());
+                var body = await request.Content.ReadAsStringAsync();
                 if (version == 1.0)
                 {
                     return JsonConvert.DeserializeObject<TokenRequestV1>(body);

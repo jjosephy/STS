@@ -23,7 +23,8 @@ namespace JJ.SecureTokenService.Handler
         /// </summary>
         static HashSet<string> relyingParties = new HashSet<string>()
         {
-            "http://jj.sts.test.com"
+            "http://jj.sts.test.com",
+            "http://jj.tokenclient.com"
         };
 
         /// <summary>
