@@ -45,10 +45,10 @@ namespace JJ.SecureTokenService.Tests
         [ClassInitialize()]
         public static void ClassInit(TestContext context)
         {
-            var cert = CertificateManager.GetClientCert(CertSubjectName);
+            //var cert = CertificateManager.GetClientCert(CertSubjectName);
             server = Server<OwinStartUp>.Create(
                 baseUri: baseUri, 
-                clientCert: cert,
+                clientCert: null,
                 validateCertificate: validateCertificate);
         }
 
@@ -66,10 +66,38 @@ namespace JJ.SecureTokenService.Tests
                 correlationId: correlationId);
 
             var token = await response.Content.ReadAsStringAsync();
-            var decrypted = TokenCryptoManager.Instance.Decrypt(token);
 
             Assert.IsTrue(response.StatusCode == System.Net.HttpStatusCode.OK, "Status Codes do not match");
             Assert.IsFalse(string.IsNullOrWhiteSpace(token), "Token is an empty string");
+        }
+
+        [TestMethod]
+        public async Task TokenController_TestGet_V1()
+        {
+            Guid correlationId = Guid.NewGuid();
+            var response = await server.CreateRequestAsync<TokenRequestV1>(
+                HttpMethod.Get,
+                "/token",
+                contentType: "application/json",
+                relyingParty: RelyingParth,
+                correlationId: correlationId);
+
+            Assert.IsTrue(response.StatusCode == System.Net.HttpStatusCode.MethodNotAllowed, "Status Codes do not match");
+        }
+    
+        [TestMethod]
+        public async Task TokenController_TestUnauthorizedRequest_V1()
+        {
+            var body = CreateUnauthenticatedRequestBodyV1();
+            var response = await server.CreateRequestAsync<TokenRequestV1>(
+                HttpMethod.Post,
+                "/token",
+                contentType: "application/json",
+                value: body,
+                relyingParty: RelyingParth,
+                correlationId: Guid.NewGuid());
+
+            Assert.IsTrue(response.StatusCode == System.Net.HttpStatusCode.Unauthorized, "Status Codes do not match");
         }
 
         [TestMethod]
@@ -78,7 +106,7 @@ namespace JJ.SecureTokenService.Tests
             var response = await server.CreateRequestAsync<string>(
                 HttpMethod.Post,
                 "token",
-                value: CreateEncryptedString<TokenRequestV1>(CreateRequestBodyV1()),
+                value: JsonConvert.SerializeObject(CreateRequestBodyV1()),
                 relyingParty: RelyingParth,
                 correlationId: null);
 
@@ -94,7 +122,7 @@ namespace JJ.SecureTokenService.Tests
                 HttpMethod.Post,
                 "token",
                 version: 0,
-                value: CreateEncryptedString<TokenRequestV1>(CreateRequestBodyV1()),
+                value: JsonConvert.SerializeObject(CreateRequestBodyV1()),
                 relyingParty: RelyingParth,
                 correlationId: Guid.NewGuid());
 
@@ -109,7 +137,7 @@ namespace JJ.SecureTokenService.Tests
             var response = await server.CreateRequestAsync<string>(
                 HttpMethod.Post,
                 "token",
-                value: CreateEncryptedString<TokenRequestV1>(CreateRequestBodyV1()),
+                value: JsonConvert.SerializeObject(CreateRequestBodyV1()),
                 relyingParty: RelyingParth,
                 correlationId: null);
 
@@ -144,12 +172,12 @@ namespace JJ.SecureTokenService.Tests
         {
             return new TokenRequestV1
             {
+                AuthenticationProvider = "TestProvider",
                 Email = "test@test.com",
                 Password = "password",
-                AccessToken = Guid.NewGuid().ToString(),
+                ApiKey = Guid.NewGuid().ToString(),
                 UserName = "username",
-                MobilePhone = "1234567890",
-                AuthenticationProvider = Authentication.AuthenticationProvider.TestProvider
+                MobilePhone = "1234567890"
             };
         }
 
@@ -157,8 +185,12 @@ namespace JJ.SecureTokenService.Tests
         {
             return new TokenRequestV1
             {
-                Email = "test@test.com",
-                AuthenticationProvider = Authentication.AuthenticationProvider.TestProvider
+                AuthenticationProvider = "TestProvider",
+                Email = "unauthorized@test.com",
+                Password = "password",
+                ApiKey = Guid.NewGuid().ToString(),
+                UserName = "username",
+                MobilePhone = "1234567890"
             };
         }
     }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace JJ.SecureTokenService.HttpResponseMessages
@@ -15,23 +16,27 @@ namespace JJ.SecureTokenService.HttpResponseMessages
     {
         public static HttpResponseMessage Unauthorized()
         {
-            return new HttpResponseMessage(HttpStatusCode.Unauthorized)
-            {
-                Content = new StringContent("Unathorized")
-            };
+            return CreateContent(HttpStatusCode.Unauthorized, "Unathorized");
         } 
 
         public static HttpResponseMessage Ok(object value)
         {
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(value))
-            };
+            return CreateContent(HttpStatusCode.OK, JsonConvert.SerializeObject(value));
         }
 
         public static HttpResponseMessage BadRequest(string message)
         {
-            return new HttpResponseMessage(HttpStatusCode.BadRequest)
+            return CreateContent(HttpStatusCode.BadRequest, message);
+        }
+
+        public static HttpResponseMessage InternalServerError(string message)
+        {
+            return CreateContent(HttpStatusCode.InternalServerError, message);
+        }
+
+        private static HttpResponseMessage CreateContent(HttpStatusCode code, string message)
+        {
+            return new HttpResponseMessage(code)
             {
                 Content = new StringContent(message)
             };

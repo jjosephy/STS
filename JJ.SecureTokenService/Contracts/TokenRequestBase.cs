@@ -16,15 +16,8 @@ namespace JJ.SecureTokenService.Contracts
             set;
         }
 
-        [JsonProperty(PropertyName = "accessToken")]
-        public string AccessToken
-        {
-            get;
-            set;
-        }
-
-        [JsonProperty(PropertyName = "authenticationProvider")]
-        public AuthenticationProvider AuthenticationProvider
+        [JsonProperty(PropertyName = "apiKey")]
+        public string ApiKey
         {
             get;
             set;

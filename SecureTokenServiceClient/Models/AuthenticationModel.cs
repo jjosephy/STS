@@ -9,7 +9,7 @@ namespace SecureTokenServiceClient.Models
     public class AuthenticationModel
     {
         [JsonProperty(PropertyName = "accessToken")]
-        public string AccessToken
+        public string ApiKey
         {
             get;
             set;

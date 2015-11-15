@@ -9,6 +9,13 @@ namespace JJ.SecureTokenService.Contracts.V1
 {
     public class TokenRequestV1 : TokenRequestBase
     {
+        [JsonProperty(PropertyName = "authProvider")]
+        public string AuthenticationProvider
+        {
+            get;
+            set;
+        }
+
         [JsonProperty(PropertyName = "email")]
         public string Email
         {

@@ -59,17 +59,7 @@ namespace SecureTokenServiceClient.Client
         {
             try
             {
-                var client = new HttpClient()
-                {
-                    BaseAddress = baseUri,
-                    Timeout = new TimeSpan(0, 0, 0, 0, TimeOut)
-                };
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Clear();
-                client.DefaultRequestHeaders.Add("x-api-version", "1.0");
-                client.DefaultRequestHeaders.Add("x-correlation-id", Guid.NewGuid().ToString());
-                client.DefaultRequestHeaders.Add("relyingParty", "http://jj.tokenclient.com");
+                var client = CreateClient();
                 var response = await client.PostAsync<string>(
                     "/token", 
                     JsonConvert.SerializeObject(authentication), 
@@ -113,22 +103,32 @@ namespace SecureTokenServiceClient.Client
         /// <returns>An awaitable Task that results in a ClaimsResponseModel</returns>
         public async Task<ClaimsResponseModel> GetClaimsAsync(string token)
         {
-            var client = new HttpClient()
-            {
-                BaseAddress = baseUri,
-                Timeout = new TimeSpan(0, 0, 0, 0, TimeOut)
-            };
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
+            var client = CreateClient();
+            client.DefaultRequestHeaders.Add("Authorization", token);
             var response = await client.GetAsync("/claims");
-
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 return JsonConvert.DeserializeObject<ClaimsResponseModel>(await response.Content.ReadAsStringAsync());
             }
 
             return new ClaimsResponseModel();
+        }
+
+        private HttpClient CreateClient()
+        {
+            var client = new HttpClient()
+            {
+                BaseAddress = baseUri,
+                Timeout = new TimeSpan(0, 0, 0, 0, TimeOut)
+            };
+
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-version", "1.0");
+            client.DefaultRequestHeaders.Add("x-correlation-id", Guid.NewGuid().ToString());
+            client.DefaultRequestHeaders.Add("relyingParty", "http://jj.tokenclient.com");
+
+            return client;
         }
     }
 }

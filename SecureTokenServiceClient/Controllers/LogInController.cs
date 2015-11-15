@@ -26,7 +26,7 @@ namespace SecureTokenServiceClient.Controllers
             {
                 var body = new AuthenticationModel
                 {
-                    AccessToken = AppId.ToString(),
+                    ApiKey = AppId.ToString(),
                     Email = email,
                     Password = password,
                     UserName = username,

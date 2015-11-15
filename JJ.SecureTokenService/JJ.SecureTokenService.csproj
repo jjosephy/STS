@@ -19,6 +19,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -94,15 +95,18 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\OwinStartUp.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="AssemblyResolver\AssemblyResolver.cs" />
     <Compile Include="Application\STSConstants.cs" />
-    <Compile Include="Authentication\AuthenticationProvider.cs" />
-    <Compile Include="Authentication\AuthenticationProviderFactory.cs" />
+    <Compile Include="Authentication\MembershipAuthenticationProvider.cs" />
+    <Compile Include="Authentication\IAuthenticationProvider.cs" />
+    <Compile Include="Configuration\ConfigurationHandler.cs" />
     <Compile Include="Contracts\TokenRequestBase.cs" />
     <Compile Include="Contracts\V1\TokenRequestV1.cs" />
     <Compile Include="Contracts\V1\TokenResponseV1.cs" />
@@ -120,6 +124,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestContext\ITokenServiceRequestContext.cs" />
     <Compile Include="RequestContext\TokenServiceRequestContext.cs" />
+    <Compile Include="ServiceLocator\ServiceLocator.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
